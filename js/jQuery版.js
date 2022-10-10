@@ -8,6 +8,7 @@ $(document).ready(function () {
 	$.zoom();
 	$.thumb();
 	$.info();
+	$.parmaClick();
 });
 let $zoom = $(".wrap .con .mainCon .previewWrap .preview .zoom");
 let $preview = $(".wrap .con .mainCon .previewWrap .preview");
@@ -144,7 +145,6 @@ $.thumb = function () {
 	});
 };
 $.info = function () {
-	console.log("商品基本信息");
 	let goodsDetail = goodData.goodsDetail;
 	let infoNode = $(".wrap .con .mainCon .infoWrap");
 	infoNode.html(` <div class="info1">
@@ -210,8 +210,70 @@ $.info = function () {
 	chooseDiv.append(carWarpDiv);
 	//获取crubData数组，数组的每一项就是一个dl标签
 	let crumbData = goodData.goodsDetail.crumbData;
-	crumbData.forEach(function (index, arrObj) {
-		console.log(index, arrObj);
-		// let dlNode = $("")
+	crumbData.forEach(function (arrObj, dlindex) {
+		let dlNode = $(`<dl><dt>${arrObj.title}</dt></dl>`);
+		dlNode.attr("dlindex", dlindex);
+		chooseAreaDiv.append(dlNode);
+		// 遍历data数组在dd标签中
+		arrObj.data.forEach(function (Parma, ddindex) {
+			let ddNode = $(`<dd price = "${Parma.changePrice}">${Parma.type}</dd>`);
+			dlNode.append(ddNode);
+		});
+	});
+};
+$.parmaClick = function () {
+	let $dlNodes = $(".wrap .con .mainCon .infoWrap .choose .chooseArea dl");
+	let $choosed = $(
+		".wrap .con .mainCon .infoWrap .choose .chooseArea .choosed"
+	);
+	let selectParmas = new Array(4);
+	selectParmas.fill(0);
+	// 获取所有的dd标签
+	$dlNodes.each(function (dlindex, dlNode) {
+		let $ddNodes = $(dlNode).children("dd");
+		$ddNodes.each(function (key, ddNode) {
+			// console.log(key, ddNode);key,value值是一个dom对象
+			$(ddNode).on("click", function () {
+				// 点击参数将会变色
+				$ddNodes.each(function (key2, ddNodeColor) {
+					$(ddNodeColor).css("color", "#666");
+				});
+				$(this).css("color", "red");
+				selectParmas[dlindex] = $(this).text();
+				$choosed.html("");
+				// 点击参数，遍历循环selectParmas，在类名为choosed下创建mask标签
+				selectParmas.forEach(function (parmaValue, parmaIndex) {
+					if (!parmaValue) {
+						return;
+					} else {
+						let mark = $(
+							`<mark>${parmaValue}<a arrindex = "${parmaIndex}">X</a></mark>`
+						);
+						$choosed.append(mark);
+					}
+				});
+				let $aNodes = $(
+					".wrap .con .mainCon .infoWrap .choose .chooseArea .choosed mark a"
+				);
+				// 点击X号，删除父mask标签，并且将参数的值改回默认初始值
+				$aNodes.each(function (aNodekey, aNode) {
+					// 绑定单击事件，删除mask标签
+					$(aNode).on("click", function () {
+						$(this).parent().remove();
+						// $ddnodes = $(
+						// 	".wrap .con .mainCon .infoWrap .choose .chooseArea dl dd"
+						// );
+						let dlindex = $(this).attr("arrindex");
+						let dds = $dlNodes[dlindex].querySelectorAll("dd");
+						// 参数恢复默认值
+						$(dds).each(function (key, ddnodeColor) {
+							$(ddnodeColor).css("color", "#666");
+						});
+						dds[0].style.color = "red";
+						// $dlNodes[dlindex][0].style.color = "red";
+					});
+				});
+			});
+		});
 	});
 };
