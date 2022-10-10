@@ -270,7 +270,6 @@ $.parmaClick = function () {
 							$(ddnodeColor).css("color", "#666");
 						});
 						dds[0].style.color = "red";
-						// $dlNodes[dlindex][0].style.color = "red";
 					});
 				});
 			});
