@@ -253,6 +253,7 @@ $.parmaClick = function () {
 						$choosed.append(mark);
 					}
 				});
+				// 计算商品的价格
 				let $aNodes = $(
 					".wrap .con .mainCon .infoWrap .choose .chooseArea .choosed mark a"
 				);
@@ -279,6 +280,9 @@ $.parmaClick = function () {
 	});
 };
 $.linkPrice = function () {
+	let emNode = $(
+		".wrap .con .mainCon .infoWrap .info1 .priceArea .priceArea1 .price em"
+	);
 	let totalPrice = 0;
 	let shopPrice = goodData.goodsDetail.price;
 	totalPrice = totalPrice + shopPrice;
@@ -291,7 +295,7 @@ $.linkPrice = function () {
 			let price = Number($(this).attr("price"));
 			console.log(price);
 			totalPrice += price;
-			console.log(totalPrice);
+			emNode.text(totalPrice);
 		});
 	});
 };
