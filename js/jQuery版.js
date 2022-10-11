@@ -9,6 +9,7 @@ $(document).ready(function () {
 	$.thumb();
 	$.info();
 	$.parmaClick();
+	$.linkPrice();
 });
 let $zoom = $(".wrap .con .mainCon .previewWrap .preview .zoom");
 let $preview = $(".wrap .con .mainCon .previewWrap .preview");
@@ -264,6 +265,7 @@ $.parmaClick = function () {
 						// 	".wrap .con .mainCon .infoWrap .choose .chooseArea dl dd"
 						// );
 						let dlindex = $(this).attr("arrindex");
+						selectParmas[dlindex] = 0;
 						let dds = $dlNodes[dlindex].querySelectorAll("dd");
 						// 参数恢复默认值
 						$(dds).each(function (key, ddnodeColor) {
@@ -273,6 +275,23 @@ $.parmaClick = function () {
 					});
 				});
 			});
+		});
+	});
+};
+$.linkPrice = function () {
+	let totalPrice = 0;
+	let shopPrice = goodData.goodsDetail.price;
+	totalPrice = totalPrice + shopPrice;
+	let $dlNodes = $(".wrap .con .mainCon .infoWrap .choose .chooseArea dl");
+	$dlNodes.each(function (key, dlNode) {
+		$ddNodes = $(dlNode).children("dd");
+		$ddNodes.on("click", function () {
+			console.log(this);
+			// 获取点击参数的价格
+			let price = Number($(this).attr("price"));
+			console.log(price);
+			totalPrice += price;
+			console.log(totalPrice);
 		});
 	});
 };
