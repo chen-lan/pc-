@@ -9,11 +9,18 @@ $(document).ready(function () {
 	$.thumb();
 	$.info();
 	$.parmaClick();
-	$.linkPrice();
+	$.cancelMounting();
+	$.toggleTabs();
+	$.myMenu();
 });
 let $zoom = $(".wrap .con .mainCon .previewWrap .preview .zoom");
 let $preview = $(".wrap .con .mainCon .previewWrap .preview");
 let $imgsrc = goodData.imgsrc;
+let shopPrice = goodData.goodsDetail.price;
+let $priceNode = $(
+	".wrap .productDetail .detail .fitting .goodSuits .result .price"
+);
+let rightPriceReg = /\d+/;
 $.initCrumbs = function () {
 	let a = null;
 	// 获取data.js中path数据
@@ -221,12 +228,14 @@ $.info = function () {
 			dlNode.append(ddNode);
 		});
 	});
+	$.mountingsPrice();
 };
 $.parmaClick = function () {
 	let $dlNodes = $(".wrap .con .mainCon .infoWrap .choose .chooseArea dl");
 	let $choosed = $(
 		".wrap .con .mainCon .infoWrap .choose .chooseArea .choosed"
 	);
+	let rightPrice = Number($priceNode.text().match(rightPriceReg));
 	let selectParmas = new Array(4);
 	selectParmas.fill(0);
 	// 获取所有的dd标签
@@ -240,7 +249,7 @@ $.parmaClick = function () {
 					$(ddNodeColor).css("color", "#666");
 				});
 				$(this).css("color", "red");
-				selectParmas[dlindex] = $(this).text();
+				selectParmas[dlindex] = this;
 				$choosed.html("");
 				// 点击参数，遍历循环selectParmas，在类名为choosed下创建mask标签
 				selectParmas.forEach(function (parmaValue, parmaIndex) {
@@ -248,12 +257,15 @@ $.parmaClick = function () {
 						return;
 					} else {
 						let mark = $(
-							`<mark>${parmaValue}<a arrindex = "${parmaIndex}">X</a></mark>`
+							`<mark>${$(
+								parmaValue
+							).text()}<a arrindex = "${parmaIndex}">X</a></mark>`
 						);
 						$choosed.append(mark);
 					}
 				});
 				// 计算商品的价格
+				$.linkPrice(selectParmas, rightPrice);
 				let $aNodes = $(
 					".wrap .con .mainCon .infoWrap .choose .chooseArea .choosed mark a"
 				);
@@ -273,29 +285,137 @@ $.parmaClick = function () {
 							$(ddnodeColor).css("color", "#666");
 						});
 						dds[0].style.color = "red";
+						$.linkPrice(selectParmas, rightPrice);
 					});
 				});
 			});
 		});
 	});
 };
-$.linkPrice = function () {
-	let emNode = $(
+$.linkPrice = function (parmaArr, rightPrice) {
+	let $emNode = $(
 		".wrap .con .mainCon .infoWrap .info1 .priceArea .priceArea1 .price em"
 	);
+	let $pNode = $(".wrap .productDetail .detail .fitting .goodSuits .master p");
 	let totalPrice = 0;
-	let shopPrice = goodData.goodsDetail.price;
 	totalPrice = totalPrice + shopPrice;
-	let $dlNodes = $(".wrap .con .mainCon .infoWrap .choose .chooseArea dl");
-	$dlNodes.each(function (key, dlNode) {
-		$ddNodes = $(dlNode).children("dd");
-		$ddNodes.on("click", function () {
-			console.log(this);
-			// 获取点击参数的价格
-			let price = Number($(this).attr("price"));
-			console.log(price);
-			totalPrice += price;
-			emNode.text(totalPrice);
+	parmaArr.forEach(function (ddNode) {
+		if (!ddNode) {
+			return;
+		}
+		let price = Number(ddNode.getAttribute("price"));
+		totalPrice += price;
+		rightPrice += price;
+	});
+	$emNode.text(totalPrice);
+	$pNode.text(`¥${totalPrice}`);
+	$priceNode.text(`¥${rightPrice}`);
+};
+// 默认全选配件价格处理
+$.mountingsPrice = function () {
+	let totalPrice = 0;
+	totalPrice += shopPrice;
+	let $priceNode = $(
+		".wrap .productDetail .detail .fitting .goodSuits .result .price"
+	);
+	// 默认选中所有的配件
+	let $inputNodes = $(
+		".wrap .productDetail .detail .fitting .goodSuits .suits .suitsItem input"
+	);
+	$inputNodes.each(function (key, inputNode) {
+		$(inputNode).prop("checked", true);
+		let mountingPrice = Number($(inputNode).attr("value"));
+		totalPrice += mountingPrice;
+	});
+	$priceNode.text(`¥${totalPrice}`);
+};
+// 取消选择的配件，同时改变联动价格
+$.cancelMounting = function () {
+	// 取消配件
+	let $inputNodes = $(
+		".wrap .productDetail .detail .fitting .goodSuits .suits .suitsItem input"
+	);
+	let rightPrice = Number($priceNode.text().match(rightPriceReg));
+	$inputNodes.each(function (key, inputNode) {
+		// 为inputNodes绑定单击事件
+		$(inputNode).on("click", function () {
+			let price = Number($(this).attr("value"));
+			if (!$(this).prop("checked")) {
+				// 取消该配件
+				rightPrice -= price;
+			} else {
+				// 选择该配件
+				rightPrice += price;
+			}
+			$priceNode.text(`¥${rightPrice}`);
 		});
+	});
+};
+$.toggleTabs = function () {
+	// 商品分类
+	let $h4Nodes = $(".wrap .productDetail .aside .tabWrap h4");
+	let $divNodes = $(".wrap .productDetail .aside .tabContent > div");
+	let $liNodes = $(".wrap .productDetail .detail .intro .tabWrap > li");
+	let $parmaDivNodes = $(
+		".wrap .productDetail .detail .intro .tabContent > div"
+	);
+	$h4Nodes.each(function (key, h4Node) {
+		$(h4Node).on("click", function () {
+			$(this).addClass("active").siblings().removeClass("active");
+			console.log($divNodes[key]);
+			$($divNodes[key]).addClass("active").siblings().removeClass("active");
+		});
+	});
+	$liNodes.each(function (key, liNode) {
+		$(liNode).on("click", function () {
+			console.log("单击了");
+			$(this).addClass("active").siblings().removeClass("active");
+			$($parmaDivNodes[key])
+				.addClass("active")
+				.siblings()
+				.removeClass("active");
+		});
+	});
+};
+// 个人菜单窗口
+$.myMenu = function () {
+	let toolBarNode = document.querySelector(".wrap .toolBar");
+	let butNode = document.querySelector(".wrap .toolBar .but");
+	let liNodes = document.querySelectorAll(".wrap .toolBar .toolList li");
+	// 各人菜单窗口默认状态是关着的
+	let isOpen = false;
+	// 默认是折叠
+	let isRollOut = false;
+	butNode.onclick = function () {
+		isOpen = !isOpen;
+		if (isOpen) {
+			toolBarNode.className = "toolBar toolOut";
+			this.className = "but cross";
+		} else {
+			toolBarNode.className = "toolBar toolWrap";
+			this.className = "but list";
+		}
+	};
+	// 各人具体菜单滑动效果
+	liNodes.forEach(function (liNode) {
+		liNode.onmouseenter = function () {
+			if (!isRollOut) {
+				let iNode = this.querySelector("i");
+				let emNode = this.querySelector("em");
+				iNode.style.backgroundColor = "rgb(" + 200 + "," + 17 + "," + 34 + ");";
+				emNode.style.left = -62 + "px";
+			}
+			isRollOut = !isRollOut;
+		};
+		liNode.onmouseleave = function () {
+			if (isRollOut) {
+				let iNode = this.querySelector("i");
+				let emNode = this.querySelector("em");
+				iNode.style.backgroundColor =
+					"rgb(" + 122 + "," + 110 + "," + 110 + ");";
+				emNode.style.left = 35 + "px";
+			}
+			isRollOut = !isRollOut;
+		};
 	});
 };
